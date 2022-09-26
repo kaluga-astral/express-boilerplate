@@ -8,6 +8,7 @@
     "lint": "eslint . --fix --quiet",
     "lint:all": "eslint \"**/*.{ts,tsx}\" --fix --quiet",
     "tests": "jest",
+    "start": "node src/main",
     "dev": "cross-env ENV_NAME=local node src/main"
   },
   "dependencies": {
