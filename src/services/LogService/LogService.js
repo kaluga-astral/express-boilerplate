@@ -3,16 +3,18 @@ const winston = require('winston');
 class LogService {
   #logger;
 
+  loggerConfig = {
+    transports: [new winston.transports.Console()],
+    expressFormat: true,
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.colorize(),
+      winston.format.simple(),
+    ),
+  };
+
   constructor() {
-    this.#logger = winston.createLogger({
-      transports: [new winston.transports.Console()],
-      expressFormat: true,
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.colorize(),
-        winston.format.simple(),
-      ),
-    });
+    this.#logger = winston.createLogger(this.loggerConfig);
   }
 
   /**

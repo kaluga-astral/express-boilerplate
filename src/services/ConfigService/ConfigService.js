@@ -2,8 +2,9 @@ const path = require('path');
 
 const dotenv = require('dotenv');
 
+const { MONITORING_ERROR_DSN } = require('../../constants');
 const { logService } = require('../LogService');
-const validationService = require('../ValidationService');
+const { validationService } = require('../ValidationService');
 
 /**
  * @description Отдает env приложения
@@ -30,22 +31,22 @@ const getAppEnv = ({ envDirPath }) => {
   return { API_URL, PORT, ENV_NAME };
 };
 
+const validateEnv = (env, validationScheme) => {
+  validationService.object(validationScheme).validateSync(env);
+};
+
 /**
  * @description Сервис для работы с config. Содержит глобальную конфигурацию приложения
  */
 class ConfigService {
   #logger;
 
-  /**
-   * @description Схема для валидации env
-   */
-  #envValidationScheme = {
-    API_URL: validationService.string().url().required(),
-    PORT: validationService.number().required(),
-    ENV_NAME: validationService.string().required(),
+  config = {
+    apiUrl: '',
+    port: 0,
+    envName: '',
+    monitoringErrorConfig: { dsn: '', environment: '' },
   };
-
-  config = {};
 
   constructor(logger) {
     this.#logger = logger;
@@ -56,16 +57,24 @@ class ConfigService {
    * * @param {Object} params
    *  * @param {string} params.envDirPath - Путь до директории с .env файлами.
    */
-  init = ({ envDirPath }) => {
+  init = ({ envDirPath, envValidationScheme }) => {
     const env = getAppEnv({ envDirPath });
 
-    this.#validateEnv(env);
-    this.config = env;
+    validateEnv(env, envValidationScheme);
+    this.#initConfig(env);
     this.#logger.info('Config:', this.config);
   };
 
-  #validateEnv = (env) => {
-    validationService.object(this.#envValidationScheme).validateSync(env);
+  #initConfig = (env) => {
+    this.config = {
+      envName: env.ENV_NAME,
+      port: env.PORT,
+      apiUrl: env.API_URL,
+      monitoringErrorConfig: {
+        dsn: MONITORING_ERROR_DSN,
+        environment: env.ENV_NAME,
+      },
+    };
   };
 }
 
